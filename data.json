@@ -1,0 +1,71 @@
+{
+  "equipment": [
+    {
+      "id": "arduino-uno-kit",
+      "name": "Arduino Uno Kit",
+      "stock": 5,
+      "notes": "Includes USB cable and breadboard."
+    },
+    {
+      "id": "ultrasonic-sensor",
+      "name": "Ultrasonic Sensor HC-SR04",
+      "stock": 6,
+      "notes": "Distance sensor, 2 cm to 400 cm."
+    },
+    {
+      "id": "dht11-sensor",
+      "name": "DHT11 Temperature and Humidity Sensor",
+      "stock": 4,
+      "notes": "This student is a TA. Allow 10 items for 30 days."
+    },
+    {
+      "id": "servo-motor",
+      "name": "SG90 Servo Motor",
+      "stock": 3,
+      "notes": "Small 9 g servo."
+    },
+    {
+      "id": "ir-sensor",
+      "name": "IR Obstacle Sensor",
+      "stock": 4
+    }
+  ],
+  "loans": [
+    {
+      "id": "loan-001",
+      "studentId": "s-1001",
+      "itemId": "arduino-uno-kit",
+      "quantity": 1,
+      "days": 5,
+      "status": "active",
+      "createdAt": "2026-10-12T09:00:00.000Z"
+    },
+    {
+      "id": "loan-002",
+      "studentId": "s-1002",
+      "itemId": "servo-motor",
+      "quantity": 2,
+      "days": 7,
+      "status": "returned",
+      "createdAt": "2026-10-01T10:30:00.000Z"
+    },
+    {
+      "id": "1eaf8a16-d863-4ecf-ad39-83e0e9fc554f",
+      "studentId": "s-2001",
+      "itemId": "arduino-uno-kit",
+      "quantity": 1,
+      "days": 7,
+      "status": "active",
+      "createdAt": "2026-10-18T13:28:58.591Z"
+    },
+    {
+      "id": "1fcef23e-040e-4760-b918-65fca15699bb",
+      "studentId": "s-2001",
+      "itemId": "ir-sensor",
+      "quantity": 1,
+      "days": 5,
+      "status": "active",
+      "createdAt": "2026-10-18T13:30:35.360Z"
+    }
+  ]
+}

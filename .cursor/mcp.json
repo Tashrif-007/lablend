@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lablend": {
+      "command": "node",
+      "args": ["${workspaceFolder}/backend/dist/mcp/main.js"]
+    }
+  }
+}

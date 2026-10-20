@@ -1,0 +1,16 @@
+{
+  "name": "lablend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LabLend: lends lab equipment, with the 2 items / 7 days hard rule.",
+  "scripts": {
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "start": "cd frontend && npm run build && cd ../backend && npm start",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "test": "cd backend && npm test",
+    "eval": "cd backend && npm run build && node dist/evals/run.js",
+    "mcp:config": "cd backend && npm run build && node dist/mcp/print-config.js"
+  }
+}

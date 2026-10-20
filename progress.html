@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LabLend progress</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color: #1c1c1e; }
+    article { border: 1px solid #e2e4e8; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+    h2 { font-size: 1.05rem; margin: 0 0 6px; }
+    li { margin: 3px 0; }
+    .meta { color: #6b7280; font-size: 0.85rem; }
+    table { border-collapse: collapse; margin: 6px 0; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 3px 10px; border-bottom: 1px solid #e2e4e8; }
+  </style>
+</head>
+<body>
+  <h1>LabLend: progress</h1>
+  <p>Each development phase ends with an entry here. Newest first.</p>
+
+  <article id="own-mcp-and-agent">
+    <h2>Check: build your own MCP server and agent (any LLM)</h2>
+    <p class="meta">docs/LabLend.md requirements</p>
+    <ul>
+      <li><strong>The rule lives in one domain module.</strong> Only <code>checkLoan</code> in <code>loan-rules.ts</code> decides; the API, the MCP tools and both chat backends reach it through <code>LoansService</code>. The prompts, the tool description, the MCP <code>initialize</code> instructions and the UI (<code>GET /api/rules</code>) now read <code>MAX_ITEMS</code> / <code>MAX_DAYS</code> from it instead of repeating 2 and 7.</li>
+      <li><strong>The MCP server works with any coding agent.</strong> Checked-in config for Claude Code (<code>.mcp.json</code>), Gemini CLI (<code>.gemini/settings.json</code>) and Cursor (<code>.cursor/mcp.json</code>); <code>npm run mcp:config</code> prints Codex, Antigravity and generic settings with this machine's absolute path. Checked with the real Claude Code CLI: it listed the 5 items and got <code>MAX_ITEMS_EXCEEDED</code> with a suggestion for 3 servos.</li>
+      <li><strong>The agent can use any model.</strong> The Claude Agent SDK, or any OpenAI-compatible API from <code>.env</code>. The client now has a timeout, shows the provider's own error (bad key, unknown model) in the chat, and accepts tool arguments sent as an object. A test runs a full tool-calling turn against a real HTTP server in the OpenAI format, with and without a key.</li>
+      <li>Not done: runs with the real Codex, Gemini CLI, Antigravity and Cursor apps, and with a real free OpenAI-compatible model; they are not installed here.</li>
+    </ul>
+  </article>
+
+  <article id="phase-8">
+    <h2>Phase 8: Prepare the demo</h2>
+    <p class="meta">Milestone 3</p>
+    <ul>
+      <li>New UI (<code>frontend/src/</code>): an illustrated equipment catalog with one square per unit, filters and search; a request sheet with a quantity stepper and a days slider that show the limit as you go, then Check and Approve; an assistant panel with a 3-step guide (Ask, Check, Approve), one-click demo cases, proposal cards, refusal codes, a one-click suggestion and tool / guardrail tags; a loan timeline with due dates; save toasts. Light and dark themes; on a phone a bottom tab bar switches sections.</li>
+      <li>The UI reads the limits from <code>GET /api/rules</code>, so it never keeps its own copy of the rule.</li>
+      <li>Checked in the browser on the new UI: request sheet refusal (3 kits for 10 days) → suggestion → Approve; case 1 and case 4 in the assistant with real Claude; phone width in dark mode with no sideways scroll. Fixed two bugs found this way: a CSS class shared by the assistant panel and its messages, and the phone message box sitting below the fold.</li>
+      <li>Fixed <code>npm install</code> on Windows: a <code>npm --prefix</code> install inside the root <code>postinstall</code> reinstalled the root package in a loop; the scripts now <code>cd</code> into each folder.</li>
+      <li>Demo: <code>npm install</code>, <code>LLM_PROVIDER=claude-sdk</code> in <code>.env</code>, <code>npm start</code>, open http://localhost:3000 with a fresh student such as <code>s-2001</code>, click each case.</li>
+      <li>Checked in the browser with real Claude: case 1 proposal saved by Approve, case 3 refused with all codes, case 5 refused with a suggestion that became a proposal after "Yes".</li>
+    </ul>
+  </article>
+
+  <article id="phase-7">
+    <h2>Phase 7: Add guardrails</h2>
+    <p class="meta">Milestone 3</p>
+    <ul>
+      <li><code>list_equipment</code> no longer sends item notes to any model, and every tool result is screened: a name or note that reads like an instruction is replaced (<code>backend/src/domain/guardrails.ts</code>, applied in the shared <code>tools.ts</code>, so the MCP server and both chat backends get it).</li>
+      <li>Output guardrails for both chat backends (<code>backend/src/agent/turn.ts</code>): a reply that claims a loan is saved, or offers more than 2 items or 7 days, is replaced by a fixed one built from the tool results. The reply lists which guardrail fired.</li>
+      <li><code>check_stock</code> now returns the closest valid <code>suggestion</code> on a refusal (4 kits for 14 days gives 2 kits for 7 days), so the offer comes from code, not from the model's arithmetic.</li>
+      <li>The API flags the injected note (<code>notesFlagged</code>) and the UI shows it as ignored.</li>
+      <li>Tests: case 5 is blocked through the MCP server, the API, the OpenAI-compatible agent and the Claude SDK agent, including scripted models that obey the note or claim a save. 114 backend tests pass.</li>
+    </ul>
+  </article>
+
+  <article id="phase-6">
+    <h2>Phase 6: Write evals for the prompts</h2>
+    <p class="meta">Milestone 3</p>
+    <ul>
+      <li>The five cases as nine conversations (<code>backend/src/evals/cases.ts</code>). Each runs on a temp copy of <code>data.json</code> and fails if the reply is wrong, if it does not name the rule code, or if the data changed.</li>
+      <li>Two prompts (<code>backend/src/agent/prompt.ts</code>): v1 is the Milestone 2 prompt; v2 asks one question for everything missing, starts refusals with the codes word for word, offers the <code>suggestion</code> from <code>check_stock</code>, and keeps replies short. v2 is now the default; <code>AGENT_PROMPT</code> switches.</li>
+      <li>Run with <code>npm run eval -- --provider claude-sdk</code> against real Claude (Claude Code login). Results in <code>evals/results/latest.md</code>:
+        <table>
+          <tr><th></th><th>v1</th><th>v2</th></tr>
+          <tr><td>Cases passed</td><td>5/5</td><td>5/5</td></tr>
+          <tr><td>Conversations passed</td><td>9/9</td><td>9/9</td></tr>
+          <tr><td>Avg reply length (words)</td><td>54.2</td><td>31.8</td></tr>
+          <tr><td>Avg time per conversation</td><td>13.1 s</td><td>10.5 s</td></tr>
+          <tr><td>Guardrails fired</td><td>0</td><td>0</td></tr>
+        </table>
+      </li>
+      <li>Both prompts are correct on every case with Claude; v2 gives the same outcomes with replies about 40% shorter and about 20% faster. A test with a scripted model shows the evals catch a model that guesses instead of asking (case 4).</li>
+      <li>Not done: the same comparison on a free OpenAI-compatible model (Ollama, Groq, Gemini); run <code>npm run eval</code> with one in <code>.env</code>.</li>
+    </ul>
+  </article>
+
+  <article id="phase-5">
+    <h2>Phase 5: Add the agent to the UI</h2>
+    <p class="meta">Milestone 2 · branch group-4/milestone-2</p>
+    <ul>
+      <li>Added a chat panel to the UI (<code>frontend/src/Chat.tsx</code>) and <code>POST /api/chat</code>.</li>
+      <li>The agent (<code>backend/src/agent/</code>) has two backends chosen in <code>.env</code>: the Claude Agent SDK (<code>LLM_PROVIDER=claude-sdk</code>, no built-in tools) or any OpenAI-compatible API. Both use the same tool list as the MCP server. Added the <code>@anthropic-ai/claude-agent-sdk</code> and <code>zod</code> dependencies, at the user's request.</li>
+      <li>The model gets only <code>list_equipment</code> and <code>check_stock</code>. It never gets <code>create_loan</code>: the Approve button is the only way to save, and the student id comes from the session.</li>
+      <li>A proposal is returned only from a successful <code>check_stock</code>, not from the model's words.</li>
+      <li>Tests with a scripted model for cases 1, 3, 4 and 5, and endpoint tests for the 400 and 503 cases.</li>
+      <li>Not done: a run against a real model (needs a key in <code>.env</code>), evals and prompt comparison (Milestone 3).</li>
+    </ul>
+  </article>
+
+  <article id="phase-4">
+    <h2>Phase 4: Make the MCP server and connect any agent</h2>
+    <p class="meta">Milestone 2 · branch group-4/milestone-2</p>
+    <ul>
+      <li>Added a stdio MCP server (<code>backend/src/mcp/</code>) with <code>list_equipment</code>, <code>check_stock</code> and <code>create_loan</code>. It has no new dependency.</li>
+      <li>The tools call the same <code>LoansService</code> and domain module as the API, so the rule outcome is the same. <code>create_loan</code> re-checks the rule and saves only when <code>approved</code> is true.</li>
+      <li>Config for Claude Code (<code>.mcp.json</code>) and Gemini CLI (<code>.gemini/settings.json</code>); Codex and Cursor steps are in the README.</li>
+      <li>Tests for the protocol and for cases 1 to 3 through MCP; a smoke test over real stdio gave the expected replies.</li>
+      <li>Not done: a check with the real Claude Code and Gemini CLI.</li>
+    </ul>
+  </article>
+</body>
+</html>
